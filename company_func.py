@@ -76,7 +76,19 @@ if __name__ == '__main__':
             execute_query(f"UPDATE  company.employees set salary = {new_salary} where emp_id = {emp_pick}", config)
 
         case "5":
-            pass
+            emps = read_from_database("select emp_id, name from company.employees", config)
+            departments = read_from_database("select department_id,name from company.departments", config)
+            new_emp_data = input(" Enter all data about employee: name/dob/salary/starting_date ")
+            new_emp_data = new_emp_data.split("/")
+            for department in departments:
+                print(f"{department['department_id']}. {department['name']}")
+            department_choice = input()
+
+            if new_emp_data[0] not in str(emps):
+                query = (f"INSERT INTO company.employees(name, date_of_birth, salary, starting_date, department_id) "
+                         f"values ('{new_emp_data[0]}', '{new_emp_data[1]}', {new_emp_data[2]}, '{new_emp_data[3]}', {department_choice})")
+                execute_query(query, config)
+
         case "6":
             emps = read_from_database("select emp_id, name from company.employees", config)
             for emp in emps:
