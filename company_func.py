@@ -44,6 +44,8 @@ def execute_query(sql_query: str, config: dict):
 
 if __name__ == '__main__':
 
+    budget_cap = 0.8
+
     MENU = """ 
     1. Show all employees
     2. Show all employees by department
@@ -68,12 +70,31 @@ if __name__ == '__main__':
         case "3":
             pass
         case "4":
-            emps = read_from_database("select emp_id, name from company.employees", config)
+            emp = {}
+            emps = read_from_database("select emp_id, name, salary from company.employees", config)
             for emp in emps:
                 print(f"{emp['emp_id']}. {emp['name']}")
+
             emp_pick = input()
-            new_salary = input("What is the new salary?")
-            execute_query(f"UPDATE  company.employees set salary = {new_salary} where emp_id = {emp_pick}", config)
+            for emp in emps:
+                if emp_pick == emp["emp_id"]:
+                    break
+
+            available_budget_query = f"""select sum(p.budget) from company.projects p 
+                                        join company.contracts c on c.project_id  = p.project_id 
+                                        join company.employees e on e.emp_id = c.emp_id 
+                                        where e.emp_id = {emp_pick};"""
+
+            budget = read_from_database(available_budget_query, config)
+
+            percentage = input("What is the raise in percentage? ")
+            new_salary = emp['salary'] + emp['salary'] * float(percentage)/100
+
+            if new_salary < budget[0]['sum'] * budget_cap:
+                execute_query(f"UPDATE company.employees set salary = {new_salary} where emp_id = {emp_pick}", config)
+            else:
+                print("Not enough money for the raise")
+
 
         case "5":
             emps = read_from_database("select emp_id, name from company.employees", config)
